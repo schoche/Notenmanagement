@@ -2,6 +2,7 @@ drop table schueler;
 drop table klassen;
 drop table faecher;
 drop table tests;
+drop table ergebnisse;
 
 create table schueler(
 	sid int not null,
@@ -28,14 +29,16 @@ create table tests(
 	kid int,
 	fid int,
 	primary key(tid,kid,fid),
+	bezeichnung varchar(20),
 	datum date	
 );
 
 create table ergebnisse(
 	sid int,
 	tid int,
-	primary key(sid,tid)
-	note int not null
+	primary key(sid,tid),
+	note int not null,
+	kommentar varchar(20)
 );
 	
 
@@ -56,13 +59,14 @@ insert into faecher values
 	(null,"KSN");
 
 insert into tests values
-	(null,1,1,"2018-01-12"),
-	(null,1,1,"2018-02-02"),
-	(null,1,2,"2018-01-23"),
-	(null,1,2,"2018-02-06"),
-	(null,2,1,"2018-02-03"),
-	(null,2,1,"2018-01-13"),
-	(null,2,2,"2018-03-01"),
-	(null,2,2,"2018-02-27");
+	(null,1,1,"SQL","2018-01-12"),
+	(null,1,1,"Express","2018-02-02"),
+	(null,1,2,"Modulationsverfahren","2018-01-23"),
+	(null,1,2,"Tiefpaesse","2018-02-06"),
+	(null,2,1,"Node JS","2018-02-03"),
+	(null,2,1,"JDBC","2018-01-13"),
+	(null,2,2,"PSK/QAM","2018-03-01"),
+	(null,2,2,"Wiederholungstest","2018-02-27");
+
 
 
