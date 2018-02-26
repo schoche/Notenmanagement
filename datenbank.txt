@@ -1,0 +1,68 @@
+drop table schueler;
+drop table klassen;
+drop table faecher;
+drop table tests;
+
+create table schueler(
+	sid int not null,
+	kid int,
+	primary key(sid,kid),
+	firstname varchar(20),
+	lastname varchar(20)
+);
+
+create table klassen(
+	kid int not null auto_increment,
+	primary key(kid),
+	klasse varchar(10)
+);
+
+create table faecher(
+	fid int not null auto_increment,
+        primary key(fid),
+	fach varchar(20)
+);
+
+create table tests(
+	tid int not null auto_increment,
+	kid int,
+	fid int,
+	primary key(tid,kid,fid),
+	datum date	
+);
+
+create table ergebnisse(
+	sid int,
+	tid int,
+	primary key(sid,tid)
+	note int not null
+);
+	
+
+insert into schueler values 
+	(1,1,"Martin","Schachl"),
+	(2,1,"Johannes","Aigner"),
+	(3,1,"Elias","Wollitzer"),
+	(1,2,"Arastu","Moatazedi"),
+	(2,2,"Florian","Schachermair"),
+	(3,2,"Leon","Stempfer");
+
+insert into klassen values
+	(null,"5AHELS"),
+	(null,"5BHELS");
+
+insert into faecher values
+	(null,"FSST"),
+	(null,"KSN");
+
+insert into tests values
+	(null,1,1,"2018-01-12"),
+	(null,1,1,"2018-02-02"),
+	(null,1,2,"2018-01-23"),
+	(null,1,2,"2018-02-06"),
+	(null,2,1,"2018-02-03"),
+	(null,2,1,"2018-01-13"),
+	(null,2,2,"2018-03-01"),
+	(null,2,2,"2018-02-27");
+
+
