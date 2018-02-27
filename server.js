@@ -47,7 +47,7 @@ app.get("/api/newest_events",function(req,res){
 
         let five = []
         if(len > 5){
-            for(let i = 0; i < 5; i++){
+            for(let i = len-5; i < len; i++){
                 five.push(y[i])
             }
         }else{
