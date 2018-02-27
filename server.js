@@ -1,5 +1,6 @@
 const express=require('express')
 const app=express()
+const path = require("path")
 
 const bodyParser=require('body-parser')
 const mysql=require("mysql")
@@ -19,15 +20,16 @@ let connection = mysql.createConnection({
 
 connection.connect(function(err){
     if(err){
-        console.log(err)
+        console.log("SQL Connection error:" + err)
         return
     }
     console.log("connected to DB")
 })
 
-app.get('/', function(req, res) {
+app.get('/homepage', function(req, res) {
     console.log("homepage query")
-    res.sendFile(path.join(__dirname + '/index.html'));
+    res.sendFile(path.join(__dirname + '/public/index.html'))
+    //res.send("homepage")
 });
 
 app.get("/api/newest_events",function(req,res){
