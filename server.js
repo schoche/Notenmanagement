@@ -58,7 +58,7 @@ app.get("/api/newest_events",function(req,res){
     })
 })
 
-app.get("/api/:tid",function(req,res){
+app.get("/api/get_test/:tid",function(req,res){
     let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse, e.note, e.kommentar, t.tid, t.bezeichnung, date_format(t.datum,"%d-%m-%Y") as datum, f.fid, f.fach ' + 
                 'from schueler as s join ergebnisse as e join tests as t join klassen as k join faecher as f ' +
                 'on e.sid = s.sid and e.tid = t.tid and s.kid =  t.kid ' +
@@ -78,8 +78,25 @@ app.get("/api/:tid",function(req,res){
     })
 })
 
+app.get("/api/get_klassen_faecher/:kid",function(req,res){
+    let query = 'select distinct * from (select f.fid, f.fach from tests as t join faecher as f on t.fid = f.fid  where kid = ?) a'
+
+    console.log("get_klassen_faecher\nkid: " + req.params.kid)
+    connection.query(query,req.params.kid,function(err,results,fields){
+        if(err){
+            console.log("get test ERROR: " + err)
+            return
+        }
+        let x = JSON.stringify(results)
+        let y = JSON.parse(x)
+        console.log(y)
+
+        res.send(y)
+    })
+})
+
 app.get("/api/get_klassen",function(req,res){
-    let query = 'select klasse, kid from klassen'
+    let query = 'select * from klassen'
     connection.query(query,function(err,results,fields){
         if(err){
             console.log(err)
@@ -87,13 +104,14 @@ app.get("/api/get_klassen",function(req,res){
         }
         let x = JSON.stringify(results)
         let y = JSON.parse(x)
+        console.log(results)
         console.log(y)
         res.send(y)
     })
 })
 
 app.get("/api/get_faecher",function(req,res){
-    let query = 'select fach from faecher'
+    let query = 'select * from faecher'
     connection.query(query,function(err,results,fields){
         if(err){
             console.log(err)
