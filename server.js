@@ -25,11 +25,10 @@ connection.connect(function(err){
     console.log("connected to DB")
 })
 
-app.get("/test",function(req,res){
-    connection.query("select * from tests",function(err,results,fields){
-        console.log(results)
-    })
-})
+app.get('/', function(req, res) {
+    console.log("homepage query")
+    res.sendFile(path.join(__dirname + '/index.html'));
+});
 
 app.get("/api/newest_events",function(req,res){
     let query = 'select klassen.klasse,faecher.fach,date_format(tests.datum,"%d-%m-%Y") as datum from klassen join faecher join tests on klassen.kid = tests.kid AND faecher.fid = tests.fid'
