@@ -16,7 +16,7 @@ httpReq.send()
 function generateDataTable(data) {
     let divEl = document.getElementById('newestevents')
     let html = '<table>'
-    html += '<tr><th>Wort</th><th>Beschreibung</th></tr>'
+    html += '<tr><th>Klasse</th><th>Fach</th><th>Datum</th></th><th>Bezeichnung</th></tr>'
     for(let word in data) {
         html += '<tr>'
         html += '<td>'+word+'</td>'
