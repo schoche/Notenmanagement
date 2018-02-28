@@ -1,9 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+
+
+.newest tr {
+    cursor: pointer;
+}
+table.row-clickable tbody tr td {
+    padding: 0;
+}
+
+table.row-clickable tbody tr td a {
+    display: block;
+    padding: 8px;
+    background: red; 
+}
+</style>
+
 <head>
     <meta charset="UTF-8">
-    <title>Document</title>
+    <title>Notenmanagment</title>
 </head>
+
+
 <body>
 
     <img src="logo.jpg" alt="logo" style="width:100%">
@@ -16,34 +36,36 @@ ul {
     width: 200px;
     background-color: #f1f1f1;
 }
-
 li a {
     display: block;
     color: #000;
     padding: 8px 16px;
     text-decoration: none;
 }
-
-/* Change the link color on hover */
 li a:hover {
     background-color: #555;
     color: white;
 }
 </style>
+
+
+
 </head>
 <body>
 
 <ul>
   <li><a href="index.html">Home</a></li>
-  <li><a href="input.html">Noten eintragen</a></li>
-  <li><a href="#news">Schüler suchen</a></li>
-  <li><a href="#contact">Klassen</a></li>
+  <li><a onclick="eingabe()">Noten eintragen</a></li>
+  <li><a onclick="findeklasse()">Klassen</a></li>
+  <li><a onclick="findeschueler()">Schüler</a></li>
 </ul>
+
+
 
 <div align="center" id="newestevents"></div>
 
-<script src="index.js"></script>
 
+<script src="index.js"></script>
 
 </body>
 </html>

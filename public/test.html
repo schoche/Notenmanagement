@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+
+<tr class="clickable" data-href="http://orf.at"></tr>
+
+
+<script>
+var elements = document.getElementsByClassName('clickable');
+for (var i = 0; i < elements.length; i++) {
+    var element = elements[i];
+    element.addEventListener('click', function() {
+        var href = this.dataset.href;
+        if (href) {
+            window.location.assign(href);
+        }
+    }
+}
+elements.clickable {
+    cursor: pointer;
+}
+
+</script>
+
+
+
+</body>
+</html>
