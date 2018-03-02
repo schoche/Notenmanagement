@@ -118,12 +118,27 @@ app.get("/api/get_klassentests/:kid/:fid",function(req,res){
     })
 })
 
+app.get("/api/get_schueler/:kid",function(req,res){
+    let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse from schueler as s join klassen as k on s.kid = k.kid where k.kid = 1'
+    connection.query(query,function(err,results,fields){
+        if(err){
+            console.log("get_klassen ERROR:" + err)
+            return
+        }
+        let x = JSON.stringify(results)
+        let y = JSON.parse(x)
+        console.log(results)
+        console.log(y)
+        res.send(y)
+    })
+})
+
 
 app.get("/api/get_klassen",function(req,res){
     let query = 'select * from klassen'
     connection.query(query,function(err,results,fields){
         if(err){
-            console.log(err)
+            console.log("get_klassen ERROR:" + err)
             return
         }
         let x = JSON.stringify(results)
@@ -138,7 +153,7 @@ app.get("/api/get_faecher",function(req,res){
     let query = 'select * from faecher'
     connection.query(query,function(err,results,fields){
         if(err){
-            console.log(err)
+            console.log("get_faecher ERROR" + err)
             return
         }
         let x = JSON.stringify(results)
