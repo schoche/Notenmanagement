@@ -79,13 +79,11 @@ function findeklasse(){
         if(this.status==200) {
             let responseData = JSON.parse(this.responseText)
             console.log(responseData)
-
-
             let html = '<table class="newest">'
             html += '<tr><th>Klassen</th></tr>'
             for(let row in responseData) {
             html += '<tr>'
-            html += '<td  onclick="get_klassen('+responseData[row].kid+')">'+responseData[row].klasse+'</a></td>'
+            html += '<td  onclick="get_klassen_faecher('+responseData[row].kid+')">'+responseData[row].klasse+'</a></td>'
             html += '</tr>'
     }
     html += '</table>'
@@ -103,8 +101,74 @@ function findeklasse(){
     httpReq.send()
 }
 
-function get_klassen(kid){
+function get_klassen_faecher(kid){
     console.log(kid)
+      let httpReq=new XMLHttpRequest()
+    httpReq.open('GET', '/api/get_klassen_faecher/'+kid)
+    httpReq.onload = function() {
+    let ausgabe = document.getElementById('newestevents')
+        if(this.status==200) {
+            let responseData = JSON.parse(this.responseText)
+            console.log(responseData)
+            html = '<table class="newest">'
+            html += '<tr><th>Test der Klasse: '+responseData[0].klasse+'</th></tr>'
+            for(let row in responseData) {
+                html += '<tr>'
+                html += '<td  onclick="get_klassen_tests('+responseData[row].fid+','+responseData[row].kid+')">'+responseData[row].fach+'</a></td>'
+                html += '</tr>'
+            }
+            html += '</table>'
+            ausgabe.innerHTML = html
+        } else {
+            console.log("error")
+            let errorTxt = 'Error: '+this.status+' ('+this.statusText+')'
+            ausgabe.innerHTML=errorTxt
+        }
+    }
+    httpReq.onerror = function(error) {
+        console.log('*** onerror ***')
+        console.log(error)
+    }
+    httpReq.send()
+}
+
+
+function get_klassen_tests(fid,kid){
+    console.log(fid)
+    console.log(kid)
+    let httpReq=new XMLHttpRequest()
+    httpReq.open('GET', '/api/get_klassentests/'+kid+'/'+fid)
+    httpReq.onload = function() {
+    let ausgabe = document.getElementById('newestevents')
+        if(this.status==200) {
+            let responseData = JSON.parse(this.responseText)
+            console.log(responseData)
+            html = '<table class="newest">'
+            html += '<tr><th>Fach</th><th>Bezeichnung</th><th>Datum</th><th>Klasse</th></tr>'
+            for(let row in responseData) {
+                html += '<tr>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].fach+'</a></td>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].bezeichnung+'</a></td>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].datum+'</a></td>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].klasse+'</a></td>'
+                html += '</tr>'
+            }
+            html += '</table>'
+
+            ausgabe.innerHTML = html
+
+        } else {
+            console.log("error")
+            let errorTxt = 'Error: '+this.status+' ('+this.statusText+')'
+            ausgabe.innerHTML=errorTxt
+            
+        }
+    }
+    httpReq.onerror = function(error) {
+        console.log('*** onerror ***')
+        console.log(error)
+    }
+    httpReq.send()
 }
 
 
@@ -118,18 +182,15 @@ function eingabe(){
             let responseData = JSON.parse(this.responseText)
             console.log(responseData)
 
-/*
-            var html ='<form onsubmit="submitpressed(this);return false">'
-            html +='<select name="Klasse:" size="10">'
+            var html ='<form onsubmit="klassensubmit(this);return false">'
+            html +='<select name="klasse" size="10">'
             for(let row in responseData) {
                 html +='<option value="'+responseData[row].kid+'">'+responseData[row].klasse+'</option>'
             }
             html+='</select>'
-            html+= '<form onsubmit="submit(this);return false">'
             html+='<input type="submit" value="Speichern">'
             html+='</form>'
             ausgabe.innerHTML=html
-*/
 
         } else {
             console.log("error")
@@ -141,29 +202,106 @@ function eingabe(){
     httpReq.send()
 }
 
-/*
-function submit();return false
+
+function klassensubmit(formEl)
 {
-    console.log('jo')
+    let kid = formEl.elements.klasse.value
+    console.log(kid)
+    let httpReq=new XMLHttpRequest()
+    httpReq.open('GET', '/api/get_faecher')
+    httpReq.onload = function() {
+    let ausgabe = document.getElementById('newestevents')
+        if(this.status==200) {
+            let responseData = JSON.parse(this.responseText)
+            console.log(responseData)
+            var html ='<form onsubmit="fachsubmit(this ,'+kid+');return false">'
+            html +='<select name="fach" size="10">'
+            for(let row in responseData) {
+                html +='<option value="'+responseData[row].fid+'">'+responseData[row].fach+'</option>'
+            }
+            html+='</select>'
+            html+='<input type="submit" value="Speichern">'
+            html+='</form>'
+            ausgabe.innerHTML=html
+            html += '</table>'
+            ausgabe.innerHTML=html
+            } else {
+            console.log("error")
+            let errorTxt = 'Error: '+this.status+' ('+this.statusText+')'
+            ausgabe.innerHTML=errorTxt 
+        }
+    }
+    httpReq.onerror = function(error) {
+        console.log('*** onerror ***')
+        console.log(error)
+    }
+    httpReq.send()
+    
 }
+
+
+function fachsubmit(formEl, kid){
+    console.log(kid)
+    let fid = formEl.elements.fach.value
+    console.log(fid)
+    let httpReq=new XMLHttpRequest()
+    httpReq.open('GET', '/api/get_schueler/'+kid)
+    httpReq.onload = function() {
+    let ausgabe = document.getElementById('newestevents')
+        if(this.status==200) {
+            let responseData = JSON.parse(this.responseText)
+            console.log(responseData)
+            /*html = '<table class="newest">'
+            html += '<tr><th>Vorname</th><th>Nachname</th><th>Zusatztext</th><th>Note</th></tr>'
+            for(let row in responseData) {
+                html += '<tr>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].fach+'</a></td>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].bezeichnung+'</a></td>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].datum+'</a></td>'
+                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].klasse+'</a></td>'
+                html += '</tr>'
+            }
+            html += '</table>'
+
+            ausgabe.innerHTML = html
 */
+        } else {
+            console.log("error")
+            let errorTxt = 'Error: '+this.status+' ('+this.statusText+')'
+            ausgabe.innerHTML=errorTxt
+            
+        }
+    }
+    httpReq.onerror = function(error) {
+        console.log('*** onerror ***')
+        console.log(error)
+    }
+    httpReq.send()
+}
+
+
+
+
 function findeschueler(){
     console.log('schueler')
     ausgabe =document.getElementById('newestevents')
     html='<p>Nachname Vorname</p>'
-    html+= '<form onsubmit="submitpressed(this);return false">'
+    html+= '<form onsubmit="findschuelerpress(this);return false">'
     html+='<input type="text" name="inputname" placeholder="Name"<br>'
-    html+='<input type="submit" value="Speichern">'
+    html+='<input type="submit" value="Suchen">'
     html+='</form>'
     ausgabe.innerHTML=html
 }
-/*
-function submitpressed(formEl);return false
+
+function findschuelerpress(formEl)
 {
-    console.log('fein')
-    console.log(formEl.elements.isn.value)
-}*/
+    let vn=formEl.elements.inputname.value
+    console.log(vn)
+    let arr = vn.split(' ')
+    let firstname = arr[0]
+    let lastname = arr[1]
+    console.log(firstname)
+    console.log(lastname)
 
 
-    
-
+}
