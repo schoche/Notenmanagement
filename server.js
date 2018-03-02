@@ -119,8 +119,8 @@ app.get("/api/get_klassentests/:kid/:fid",function(req,res){
 })
 
 app.get("/api/get_schueler/:kid",function(req,res){
-    let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse from schueler as s join klassen as k on s.kid = k.kid where k.kid = 1'
-    connection.query(query,function(err,results,fields){
+    let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse from schueler as s join klassen as k on s.kid = k.kid where k.kid = ?'
+    connection.query(query,req.params.kid,function(err,results,fields){
         if(err){
             console.log("get_klassen ERROR:" + err)
             return
