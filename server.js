@@ -60,10 +60,10 @@ app.get("/api/newest_events",function(req,res){
 })
 
 app.get("/api/get_test/:tid",function(req,res){
-    let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse, e.note, e.kommentar, t.tid, t.bezeichnung, date_format(t.datum,"%d-%m-%Y") as datum, f.fid, f.fach ' + 
-                'from schueler as s join ergebnisse as e join tests as t join klassen as k join faecher as f ' +
+    let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse, e.note, e.kommentar, t.tid, t.bezeichnung, date_format(t.datum,"%d-%m-%Y") as datum, f.fid, f.fach, l.lid, l.firstname, l.lastname ' + 
+                'from schueler as s join ergebnisse as e join tests as t join klassen as k join faecher as f join lehrer as l ' +
                 'on e.sid = s.sid and e.tid = t.tid and s.kid =  t.kid ' +
-                'and k.kid = s.kid and f.fid = t.fid where t.tid = ?'; 
+                'and k.kid = s.kid and f.fid = t.fid and l.lid = t.lid where t.tid = ?'; 
 
     console.log("tid: " + req.params.tid)
     connection.query(query,req.params.tid,function(err,results,fields){
@@ -118,11 +118,57 @@ app.get("/api/get_klassentests/:kid/:fid",function(req,res){
     })
 })
 
+app.get("/api/get_personentests/:fn/:ln",function(req,res){
+    
+    let fn = req.params.fn
+    let ln = req.params.ln
+    let test = "nobody found"
+
+    schueler_exists(fn, ln, function(found){
+        if(found){
+            test = "schueler gefunden"
+            console.log(test)
+
+            get_schuelertests(fn, ln, function(result){
+                res.send(result)
+            })
+        }else{
+            lehrer_exists(fn, ln, function(found){
+                if(found){
+                    test = "lehrer gefunden"
+                }else{
+                    console.log(test)
+                    res.send(test)
+                    return
+                }
+                console.log(test)
+            })
+        }
+    })
+
+   
+    
+    /*
+    let query = ''
+    connection.query(query,function(err,results,fields){
+        if(err){
+            console.log("get_schuelertests ERROR:" + err)
+            return
+        }
+        let x = JSON.stringify(results)
+        let y = JSON.parse(x)
+        console.log(results)
+        console.log(y)
+        res.send(y)
+    })
+    */
+})
+
 app.get("/api/get_schueler/:kid",function(req,res){
     let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse from schueler as s join klassen as k on s.kid = k.kid where k.kid = ?'
     connection.query(query,req.params.kid,function(err,results,fields){
         if(err){
-            console.log("get_klassen ERROR:" + err)
+            console.log("get_schueler ERROR:" + err)
             return
         }
         let x = JSON.stringify(results)
@@ -165,6 +211,70 @@ app.get("/api/get_faecher",function(req,res){
 app.listen(3000,function(){
     console.log('server running and listening on port 3000')
 })
+
+function get_schuelertests(fn, ln, callback){
+    let query = 'select * from ergebnisse as e join tests as t join klassen as k join lehrer as l join faecher as f join schueler as s '
+                'on e.sid = s.sid ' +
+                'and e.tid = t.tid ' +    
+                'and t.kid = k.kid ' +
+                'and t.lid = l.lid ' + 
+                'and t.fid = f.fid ' +
+                'and s.kid = k.kid ' +
+                'where s.firstname = "' + fn + '" and s.lastname = "' + ln + '"';
+    
+    console.log(query)
+    connection.query(query,function(err,results,fields){
+        if(err){
+            console.log("get_schuelertests ERROR" + err)
+            return
+        }
+        let x = JSON.stringify(results)
+        let y = JSON.parse(x)
+        console.log(y)
+        
+        callback(y)
+    })
+
+}
+
+function lehrer_exists(fn, ln, callback){
+    let query = 'select count(l.lid) as found from lehrer as l where l.firstname = "' + fn + '" and l.lastname = "' + ln + '"';
+    let found = 0
+    
+    console.log(query)
+    connection.query(query,function(err,results,fields){
+        if(err){
+            console.log("lehrer_exists ERROR" + err)
+            return
+        }
+        let x = JSON.stringify(results)
+        let y = JSON.parse(x)
+        console.log(y)
+        
+        found = y[0].found
+        callback(found)
+    })
+}
+
+function schueler_exists(fn, ln, callback){
+    let query = 'select count(s.sid) as found from schueler as s where s.firstname = "' + fn + '" and s.lastname = "' + ln + '"';
+    let found = 0
+    
+    console.log(query)
+    connection.query(query,function(err,results,fields){
+        if(err){
+            console.log("schueler_exists ERROR" + err)
+            return
+        }
+        let x = JSON.stringify(results)
+        let y = JSON.parse(x)
+        console.log(y)
+
+        found = y[0].found
+        
+        callback(found)
+    })
+}
 
 function getNumber(x){
     let str = '{"data":' + x + "}"
