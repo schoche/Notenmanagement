@@ -1,4 +1,5 @@
 drop table schueler;
+drop table lehrer;
 drop table klassen;
 drop table faecher;
 drop table tests;
@@ -9,7 +10,16 @@ create table schueler(
 	kid int,
 	primary key(sid,kid),
 	firstname varchar(20),
-	lastname varchar(20)
+	lastname varchar(20),
+	password varchar(256)
+);
+
+create table lehrer(
+	lid int not null auto_increment,
+	primary key(lid),
+	firstname varchar(20),
+	lastname varchar(20),
+	password varchar(256)
 );
 
 create table klassen(
@@ -27,8 +37,9 @@ create table faecher(
 create table tests(
 	tid int not null auto_increment,
 	kid int,
+	lid int,
 	fid int,
-	primary key(tid,kid,fid),
+	primary key(tid,kid,lid,fid),
 	bezeichnung varchar(20),
 	datum date	
 );
@@ -43,12 +54,16 @@ create table ergebnisse(
 	
 
 insert into schueler values 
-	(1,1,"Martin","Schachl"),
-	(2,1,"Johannes","Aigner"),
-	(3,1,"Elias","Wollitzer"),
-	(1,2,"Arastu","Moatazedi"),
-	(2,2,"Florian","Schachermair"),
-	(3,2,"Leon","Stempfer");
+	(1,1,"Martin","Schachl",""),
+	(2,1,"Johannes","Aigner",""),
+	(3,1,"Elias","Wollitzer",""),
+	(1,2,"Arastu","Moatazedi",""),
+	(2,2,"Florian","Schachermair",""),
+	(3,2,"Leon","Stempfer","");
+
+insert into lehrer values
+	(null, "Franz", "Matejka", ""),
+	(null, "Crazy", "Wagner", "");
 
 insert into klassen values
 	(null,"5AHELS"),
@@ -59,14 +74,44 @@ insert into faecher values
 	(null,"KSN");
 
 insert into tests values
-	(null,1,1,"SQL","2018-01-12"),
-	(null,1,1,"Express","2018-02-02"),
-	(null,1,2,"Modulationsverfahren","2018-01-23"),
-	(null,1,2,"Tiefpaesse","2018-02-06"),
-	(null,2,1,"Node JS","2018-02-03"),
-	(null,2,1,"JDBC","2018-01-13"),
-	(null,2,2,"PSK/QAM","2018-03-01"),
-	(null,2,2,"Wiederholungstest","2018-02-27");
+	(null,1,1,1,"SQL","2018-01-12"),
+	(null,1,1,1,"Express","2018-02-02"),
+	(null,1,2,2,"Modulationsverfahren","2018-01-23"),
+	(null,1,2,2,"Tiefpaesse","2018-02-06"),
+	(null,2,1,1,"Node JS","2018-02-03"),
+	(null,2,1,1,"JDBC","2018-01-13"),
+	(null,2,2,2,"PSK/QAM","2018-03-01"),
+	(null,2,2,2,"Wiederholungstest","2018-02-27");
 
+insert into ergebnisse values
+	(1,1,5,"Pruefung"),
+	(2,1,3,""),
+	(3,1,1,""),
 
+	(1,2,1,"100 Prozent"),
+	(2,2,4,""),
+	(3,2,2,""),
 
+	(1,3,1,""),
+	(2,3,1,""),
+	(3,3,5,"kein Kommentar"),
+
+	(1,4,5,"Pruefung"),
+	(2,4,3,""),
+	(3,4,1,""),
+		
+	(1,5,1,""),
+	(2,5,2,""),
+	(3,5,5,"Pruefung"),
+
+	(1,6,5,"Pruefung"),
+	(2,6,3,""),
+	(3,6,1,""),
+
+	(1,7,5,"Pruefung"),
+	(2,7,3,""),
+	(3,7,1,""),
+
+	(1,8,5,"Pruefung"),
+	(2,8,1,""),
+	(3,8,4,"")
