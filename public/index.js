@@ -1,10 +1,23 @@
 console.log("index script loaded")
 
 let ausgabe = document.getElementById('newestevents')
-ausgabe.innerHTML="<p>das ist ein test</p>"
-
 
 login()
+
+document.getElementById('login').innerHTML='<p>Eingelogt als: Martin Schachl</p>'
+
+
+let sidebar=document.getElementById('sidebar')
+
+html='<ul>'
+html+='<li><a href="index.html">Home</a></li>'
+html+='<li><a onclick="eingabe()">Noten eintragen</a></li>'
+html+='<li><a onclick="findeklasse()">Klassen</a></li>'
+html+='<li><a onclick="findeschueler()">Schüler</a></li>'
+html+='</ul>'
+
+sidebar.innerHTML=html
+
 
 function login(){
     html='<p>melden sie sich bitte an:</p>'
@@ -22,6 +35,50 @@ function conformlogin(formEl){
     console.log(Username)
     let pw=formEl.elements.inputpw.value
     console.log(sha1(pw))
+    let arr = Username.split(' ')
+    let firstname = arr[0]
+    let lastname = arr[1]
+    console.log(firstname)
+    console.log(lastname)
+    let httpReq=new XMLHttpRequest()
+    httpReq.open('GET', '/api/get_login/'+firstname+'/'+lastname+'/'+pw)
+    httpReq.onload = function() {
+    let ausgabe = document.getElementById('newestevents')
+        if(this.status==200) {
+            let responseData = JSON.parse(this.responseText)
+            console.log(responseData)
+/*
+            html ='<h1>'+responseData[0].klasse+': '+responseData[0].fach+' vom '+responseData[0].datum+' über '+responseData[0].bezeichnung+'</h2>'
+            html += '<table class="newest">'
+            html += '<tr><th>Vorname</th><th>Nachname</th><th>Note</th><th>Kommentar</th></tr>'
+            for(let row in responseData) {
+                html += '<tr>'
+                html += '<td>'+responseData[row].firstname+'</td>'
+                html += '<td>'+responseData[row].lastname+'</td>'
+                html += '<td>'+responseData[row].note+'</td>'
+                html += '<td>'+responseData[row].kommentar+'</td>'
+                html += '</tr>'
+            }
+            html += '</table>'
+*/
+
+            ausgabe.innerHTML = html
+
+
+
+
+        } else {
+            console.log("error")
+            let errorTxt = 'Error: '+this.status+' ('+this.statusText+')'
+            ausgabe.innerHTML=errorTxt
+            
+        }
+    }
+    httpReq.onerror = function(error) {
+        console.log('*** onerror ***')
+        console.log(error)
+    }
+    httpReq.send()
 
 }
 
@@ -432,7 +489,7 @@ function findschuelerpress(formEl)
 }
 
 
-console.log(sha1("askldfj32ü-+"))
+console.log(sha1("hallo"))
 function sha1(msg)
 {
   function rotl(n,s) { return n<<s|n>>>32-s; };
