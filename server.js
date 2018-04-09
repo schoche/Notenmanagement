@@ -84,55 +84,57 @@ app.get("/api/get_test/:tid",function(req, res){
 
 app.post("/api/post_test", function(req, res){
     let tid = req.body.tid
-    console.log(tid)
+    let n = [{tid : "0"}]
+    let insertIdZero = JSON.parse(JSON.stringify(n))
+
+    if(tid == undefined){
+        console.log("post_test tid: " + tid)
+        res.send(insertIdZero)
+        return
+    }
+
+    
     if(tid == 0){
         post_test(req, function(tid){
-            res.send(tid)
+            if(tid == 0){
+                res.send(insertIdZero)
+                return
+            }
+            post_ergebnisse(req, tid, function(tid){
+                if(tid == 0){
+                    res.send(insertIdZero)
+                }
+                insertIdZero[0].tid = tid
+                res.send(insertIdZero)
+            })
         })
     }else{
         delete_test(tid, function(){
             post_test(req, function(tid){
-                res.send(tid)
+                if(tid == 0){
+                    res.send(insertIdZero)
+                    return
+                }
+                post_ergebnisse(req, tid, function(tid){
+                    if(tid == 0){
+                        res.send(insertIdZero)
+                    }
+                    insertIdZero[0].tid = tid
+                    res.send(insertIdZero)
+                })
             })
         })
 
-    }
-
-    
+    }    
 })
 
-function post_test(req, callback){
-    
-    let kid = req.body.kid
-    let lid = req.body.lid
-    let fid = req.body.fid
-    let bez = req.body.bezeichnung
-    let dat = reverseDate(req.body.datum)
-    let tid = req.body.tid
-
-    let query = 'insert into tests values (null,' + kid + ',' + lid +',' + fid + ',"' + bez + '","' + dat + '")'
-    console.log("post_test:\n" + query)
-
-    connection.query(query, function(err, results, fields){
-        if(err){
-            console.log("post test ERROR: " + err)
-            let n = [{tid : "0"}]
-            res.send(JSON.parse(JSON.stringify(n)))
-            return
-        }
-        let x = JSON.stringify(results)
-        let y = JSON.parse(x)
-        console.log(y)
-
-        get_tid(kid, lid, fid, bez, dat, function(tid){
-            console.log("get_tid: " + JSON.stringify(tid))
-            callback(tid)
-        })
-    })
-}
 
 app.post("/api/delete_test", function(req, res){
-    tid = req.body.tid
+    tid = req.body.tidharharhhhhh
+    if(tid == 0 || tid == undefined){
+        console.log("undefined testID")
+        return
+    }
     
     delete_test(tid)
 
@@ -256,9 +258,150 @@ app.get("/api/get_faecher",function(req, res){
     })
 })
 
+app.get("/api/get_login/:fn/:ln/:hash",function(req, res){
+    let fn = req.params.fn
+    let ln = req.params.ln
+    let hash = req.params.hash
+    let query 
+    let ret = {test:0}
+
+    
+
+    schueler_exists(fn, ln, function(found){
+        if(found){
+            query = 'select s.sid, s.kid from schueler as s where s.firstname = "' + fn + '" and s.lastname = "' + ln + '" and s.password = "' + hash + '"' 
+            connection.query(query, function(err, results, fields){
+                if(err){
+                    console.log("get_login_schueler ERROR: " + err)
+                    res.send(ret)
+                    return
+                }
+                let x = JSON.stringify(results)
+                let schueler = JSON.parse(x)
+                console.log("schueler: " + JSON.stringify(schueler))
+
+                if(schueler.length == 0){
+                    res.send(ret)
+                    return
+                }
+
+                ret.test = 1
+                ret.sid = schueler[0].sid
+                ret.kid = schueler[0].kid
+                console.log(JSON.stringify(ret))
+                res.send(ret)
+                return
+            })
+        }else{
+            lehrer_exists(fn, ln, function(found){
+                if(found){
+                    query = 'select l.lid from lehrer as l where l.firstname = "' + fn + '" and l.lastname = "' + ln + '" and l.password = "' + hash + '"'
+                    connection.query(query, function(err, results, fields){
+                        if(err){
+                            console.log("get_login_lehrer ERROR: " + err)
+                            res.send(ret)
+                            return
+                        }
+                        let x = JSON.stringify(results)
+                        let lehrer = JSON.parse(x)
+                        console.log("lehrer: " + JSON.stringify(lehrer))
+
+                        if(lehrer.length == 0){
+                            res.send(ret)
+                            return
+                        }
+
+                        ret.test = 2
+                        ret.lid = lehrer[0].lid
+                        console.log(JSON.stringify(ret))
+                        res.send(ret)
+                        return
+                    })
+
+                }else{
+                    res.send(ret)
+                    console.log("nobody found")
+                    return
+                }
+            })
+        }
+    })
+})
+
+
 app.listen(3000,function(){
     console.log('server running and listening on port 3000')
+
+    /*
+    let ergebnisse = []
+    let req = {body:{}}
+    req.body.tid = 0
+    req.body.lid = 1
+    req.body.fid = 1
+    req.body.kid = 1
+    req.body.date = "Wed Apr 04 2018 02:00:00"
+    req.body.bezeichnung = ""
+    ergebnisse[0] = {note: 5, kommentar: "null"}
+    ergebnisse[1] = {note: 3, kommentar: "Nachtest"}
+    req.body.schueler = ergebnisse
+
+    ppost(req,1)
+    */
 })
+
+function post_ergebnisse(req, tid, callback){
+    let ergebnisse = req.body.schueler
+    let kid = req.body.kid
+    let lid = req.body.lid
+    let fid = req.body.fid
+
+    let query = "insert into ergebnisse values "
+    let sid
+    for(let i = 0; i < ergebnisse.length; i++){
+        sid = i + 1
+        kommentar = (ergebnisse[i].kommentar == "null") ? "null" : ('"' + ergebnisse[i].kommentar + '"')
+        klUbstr = (i == ergebnisse.length - 1) ? ")" : "), "
+        query += '(' + sid + ',' + tid + ',' + ergebnisse[i].note + ',' + kommentar + klUbstr
+    }
+    console.log(query)
+
+    connection.query(query, function(err, results, fields){
+        if(err){
+            console.log("post_ergebnisse ERROR: " + err)
+            callback(0)
+            return
+        }
+        console.log("Insert done")
+        callback(tid)
+        
+    })
+}
+
+function post_test(req, callback){
+    
+    let kid = req.body.kid
+    let lid = req.body.lid
+    let fid = req.body.fid
+    let bez = req.body.bezeichnung
+    let dat = getDate(req.body.date)
+
+    let query = 'insert into tests values (null,' + kid + ',' + lid +',' + fid + ',"' + bez + '","' + dat + '")'
+    console.log("post_test:\n" + query)
+
+    connection.query(query, function(err, results, fields){
+        if(err){
+            console.log("post test ERROR: " + err)
+            callback(0)
+            return
+        }
+        let x = JSON.stringify(results)
+        let y = JSON.parse(x)
+        console.log(y)
+
+        callback(y.insertId)
+    })
+}
+
 
 function delete_test(tid, callback){
     
@@ -421,4 +564,31 @@ function getNumber(x){
 function reverseDate(str){
     let list = str.split("-") 
     return list[2] + '-' + list[1] + '-' + list[0]
+}
+
+function getDate(str){
+    let monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    let monthName = str.substring(4,7)
+    let day = str.substring(8,10)
+    let year = str.substring(11,15)
+    let month
+    let i = 0
+    for(; i < monthNames.length; i++){
+        if(monthNames[i] == monthName){
+            break
+        }
+    }
+    month = i + 1
+
+    if(month < 10){
+        month = "0" + month
+    }else{
+        month = "" + month
+    }
+
+    let date = year + "-" + month + "-" + day
+    console.log(date)
+
+    return date
+    
 }
