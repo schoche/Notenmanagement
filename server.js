@@ -11,7 +11,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended : false}))
 
 let connection = mysql.createConnection({
-    host: "localhost",
+    host: "192.168.0.26",
     user: "root",
     password: "root",
     database: "Notenmanagement",
@@ -43,7 +43,7 @@ app.get("/api/newest_events",function(req, res){
         }
         let x = JSON.stringify(results)
         let y = JSON.parse(x)
-        console.log("get_newest_events:")
+        console.log("get_newest_events")
         
 
         let len = getNumber(x)
@@ -423,6 +423,7 @@ function delete_test(tid, callback){
         
     })
 }
+
 
 function get_tid(kid, lid, fid, bez, revDat, callback){
     let query = 'select t.tid from tests as t where t.kid = ' + kid + ' and t.lid = ' + lid + ' and t.fid = ' + fid + 
