@@ -11,7 +11,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended : false}))
 
 let connection = mysql.createConnection({
-    host: "192.168.0.26",
+    host: "localhost",
     user: "root",
     password: "root",
     database: "Notenmanagement",
@@ -31,6 +31,7 @@ app.get('/homepage', function(req, res) {
     console.log("homepage query")
     res.sendFile(path.join(__dirname + '/public/index.html'))
 });
+
 
 app.get("/api/newest_events",function(req, res){
     let query = 'select klassen.klasse,faecher.fach,tests.tid,date_format(tests.datum,"%d-%m-%Y") as datum from klassen join faecher join tests ' +
@@ -62,8 +63,10 @@ app.get("/api/newest_events",function(req, res){
     })
 })
 
+
 app.get("/api/get_test/:tid",function(req, res){
-    let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse, e.note, e.kommentar, t.tid, t.bezeichnung, date_format(t.datum,"%d-%m-%Y") as datum, f.fid, f.fach, l.lid, l.firstname, l.lastname ' + 
+    let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse, e.note, e.kommentar, t.tid, t.bezeichnung, ' +
+                'date_format(t.datum,"%d-%m-%Y") as datum, f.fid, f.fach, l.lid, l.firstname as lfirstname, l.lastname as llastname ' + 
                 'from schueler as s join ergebnisse as e join tests as t join klassen as k join faecher as f join lehrer as l ' +
                 'on e.sid = s.sid and e.tid = t.tid and s.kid =  t.kid ' +
                 'and k.kid = s.kid and f.fid = t.fid and l.lid = t.lid where t.tid = ?'; 
@@ -75,12 +78,15 @@ app.get("/api/get_test/:tid",function(req, res){
             return
         }
         let x = JSON.stringify(results)
-        let y = JSON.parse(x)
-        console.log(y)
+        console.log(x)
+        removeNulls(x, function(ret){
+            console.log(ret)
+            res.send(ret)
+        })
 
-        res.send(y)
     })
 })
+
 
 app.post("/api/post_test", function(req, res){
     let tid = req.body.tid
@@ -93,7 +99,6 @@ app.post("/api/post_test", function(req, res){
         return
     }
 
-    
     if(tid == 0){
         post_test(req, function(tid){
             if(tid == 0){
@@ -124,7 +129,6 @@ app.post("/api/post_test", function(req, res){
                 })
             })
         })
-
     }    
 })
 
@@ -135,10 +139,7 @@ app.post("/api/delete_test", function(req, res){
         console.log("undefined testID")
         return
     }
-    
-    delete_test(tid)
-
-    
+    delete_test(tid) 
 })
 
 
@@ -159,6 +160,7 @@ app.get("/api/get_klassen_faecher/:kid",function(req, res){
         res.send(y)
     })
 })
+
 
 app.get("/api/get_klassentests/:kid/:fid",function(req, res){
     let query = 'select t.tid, t.bezeichnung, date_format(t.datum,"%d-%m-%Y") as datum, f.fid, f.fach, k.kid, k.klasse ' +
@@ -181,7 +183,6 @@ app.get("/api/get_klassentests/:kid/:fid",function(req, res){
 })
 
 app.get("/api/get_personentests/:fn/:ln",function(req, res){
-    
     let fn = req.params.fn
     let ln = req.params.ln
     let test = "nobody found"
@@ -212,6 +213,7 @@ app.get("/api/get_personentests/:fn/:ln",function(req, res){
     })
 
 })
+
 
 app.get("/api/get_schueler/:kid",function(req, res){
     let query = 'select s.sid, s.firstname, s.lastname, k.kid, k.klasse from schueler as s join klassen as k on s.kid = k.kid where k.kid = ?'
@@ -244,6 +246,7 @@ app.get("/api/get_klassen",function(req, res){
     })
 })
 
+
 app.get("/api/get_faecher",function(req, res){
     let query = 'select * from faecher'
     connection.query(query,function(err, results, fields){
@@ -258,14 +261,13 @@ app.get("/api/get_faecher",function(req, res){
     })
 })
 
+
 app.get("/api/get_login/:fn/:ln/:hash",function(req, res){
     let fn = req.params.fn
     let ln = req.params.ln
     let hash = req.params.hash
     let query 
     let ret = {test:0}
-
-    
 
     schueler_exists(fn, ln, function(found){
         if(found){
@@ -331,23 +333,16 @@ app.get("/api/get_login/:fn/:ln/:hash",function(req, res){
 
 app.listen(3000,function(){
     console.log('server running and listening on port 3000')
-
-    /*
-    let ergebnisse = []
-    let req = {body:{}}
-    req.body.tid = 0
-    req.body.lid = 1
-    req.body.fid = 1
-    req.body.kid = 1
-    req.body.date = "Wed Apr 04 2018 02:00:00"
-    req.body.bezeichnung = ""
-    ergebnisse[0] = {note: 5, kommentar: "null"}
-    ergebnisse[1] = {note: 3, kommentar: "Nachtest"}
-    req.body.schueler = ergebnisse
-
-    ppost(req,1)
-    */
 })
+
+
+function removeNulls(test, callback){
+        
+        test = test.replace("null", "")
+        result = JSON.parse(test)
+        callback(result)
+}
+
 
 function post_ergebnisse(req, tid, callback){
     let ergebnisse = req.body.schueler
@@ -376,6 +371,7 @@ function post_ergebnisse(req, tid, callback){
         
     })
 }
+
 
 function post_test(req, callback){
     
@@ -440,6 +436,7 @@ function get_tid(kid, lid, fid, bez, revDat, callback){
     })
 }
 
+
 function get_schuelertests(fn, ln, callback){
     let query = 'select e.note, e.kommentar, t.tid, t.bezeichnung, date_format(t.datum,"%d-%m-%Y") as datum, k.kid, k.klasse, l.lid, l.firstname, l.lastname, f.fid, f.fach, s.sid, s.firstname, s.lastname ' + 
                 'from ergebnisse as e join tests as t join klassen as k join lehrer as l join faecher as f join schueler as s ' +
@@ -465,7 +462,6 @@ function get_schuelertests(fn, ln, callback){
         
         callback(y)
     })
-
 }
 
 function formfacharray(str){
@@ -488,12 +484,11 @@ function formfacharray(str){
             
         }
         resObj[ind]["data"].push(obj[i])
-
-        
     }
     console.log(resObj)
     return resObj
 }
+
 
 function get_lehrertests(fn, ln, callback){
     let query = 'select t.tid, t.bezeichnung, date_format(t.datum,"%d-%m-%Y") as datum, k.kid, k.klasse, l.lid, l.firstname, l.lastname, f.fid, f.fach ' +
@@ -517,6 +512,7 @@ function get_lehrertests(fn, ln, callback){
     })
 }
 
+
 function lehrer_exists(fn, ln, callback){
     let query = 'select count(l.lid) as found from lehrer as l where l.firstname = "' + fn + '" and l.lastname = "' + ln + '"';
     let found = 0
@@ -536,6 +532,7 @@ function lehrer_exists(fn, ln, callback){
     })
 }
 
+
 function schueler_exists(fn, ln, callback){
     let query = 'select count(s.sid) as found from schueler as s where s.firstname = "' + fn + '" and s.lastname = "' + ln + '"';
     let found = 0
@@ -551,10 +548,10 @@ function schueler_exists(fn, ln, callback){
         console.log(y)
 
         found = y[0].found
-        
         callback(found)
     })
 }
+
 
 function getNumber(x){
     let str = '{"data":' + x + "}"
@@ -562,10 +559,12 @@ function getNumber(x){
     return o["data"].length       
 }
 
+
 function reverseDate(str){
     let list = str.split("-") 
     return list[2] + '-' + list[1] + '-' + list[0]
 }
+
 
 function getDate(str){
     let monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
@@ -590,6 +589,5 @@ function getDate(str){
     let date = year + "-" + month + "-" + day
     console.log(date)
 
-    return date
-    
+    return date 
 }
