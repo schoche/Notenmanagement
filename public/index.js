@@ -1,23 +1,38 @@
 console.log("index script loaded")
 
 let ausgabe = document.getElementById('newestevents')
-
+let logsatus=0
+let id
+let globalfirst
+let globallast
 login()
-
-document.getElementById('login').innerHTML='<p>Eingelogt als: Martin Schachl</p>'
 
 
 let sidebar=document.getElementById('sidebar')
 
-html='<ul>'
-html+='<li><a href="index.html">Home</a></li>'
-html+='<li><a onclick="eingabe()">Noten eintragen</a></li>'
-html+='<li><a onclick="findeklasse()">Klassen</a></li>'
-html+='<li><a onclick="findeschueler()">Schüler</a></li>'
-html+='</ul>'
+function sidebarlehrer(){
+    logsatus=0
+    html='<ul>'
+    html+='<li><a href="index.html">Ausloggen</a></li>'
+    html+='<li><a onclick="eingabe()">Noten eintragen</a></li>'
+    html+='<li><a onclick="findeklasse()">Klassen</a></li>'
+    html+='<li><a onclick="findeschueler()">Schüler</a></li>'
+    html+='</ul>'
 
-sidebar.innerHTML=html
+    sidebar.innerHTML=html
+}
 
+function sidebarschueler(){
+    logsatus=0
+    html='<ul>'
+    html+='<li><a href="index.html">Auslogen</a></li>'
+    html+='<li><a onclick="meineergebnisse()">Meine Ergebnisse</a></li>'
+    html+='<li><a onclick="findeklasse()">Klassen</a></li>'
+    html+='<li><a onclick="findeschueler()">Schüler</a></li>'
+    html+='</ul>'
+
+    sidebar.innerHTML=html
+}
 
 function login(){
     html='<p>melden sie sich bitte an:</p>'
@@ -35,9 +50,14 @@ function conformlogin(formEl){
     console.log(Username)
     let pw=formEl.elements.inputpw.value
     console.log(sha1(pw))
+    pw=sha1(pw)
+    if(Username.length==0)
+        return
     let arr = Username.split(' ')
     let firstname = arr[0]
     let lastname = arr[1]
+    globalfirst = firstname
+    globallast = lastname
     console.log(firstname)
     console.log(lastname)
     let httpReq=new XMLHttpRequest()
@@ -47,24 +67,19 @@ function conformlogin(formEl){
         if(this.status==200) {
             let responseData = JSON.parse(this.responseText)
             console.log(responseData)
-/*
-            html ='<h1>'+responseData[0].klasse+': '+responseData[0].fach+' vom '+responseData[0].datum+' über '+responseData[0].bezeichnung+'</h2>'
-            html += '<table class="newest">'
-            html += '<tr><th>Vorname</th><th>Nachname</th><th>Note</th><th>Kommentar</th></tr>'
-            for(let row in responseData) {
-                html += '<tr>'
-                html += '<td>'+responseData[row].firstname+'</td>'
-                html += '<td>'+responseData[row].lastname+'</td>'
-                html += '<td>'+responseData[row].note+'</td>'
-                html += '<td>'+responseData[row].kommentar+'</td>'
-                html += '</tr>'
+            if(responseData.test==0)
+                login()
+            if(responseData.test==1){
+                logsatus=1
+                document.getElementById('login').innerHTML='<p>Eingeloggt als: '+ firstname+' '+lastname+'</p>'
+                home()
             }
-            html += '</table>'
-*/
-
-            ausgabe.innerHTML = html
-
-
+            if(responseData.test==2){
+                logsatus=2
+                id=responseData.lid
+                document.getElementById('login').innerHTML='<p>Eingeloggt als: '+ firstname+' '+lastname+'</p>'
+                home()
+            }
 
 
         } else {
@@ -84,6 +99,10 @@ function conformlogin(formEl){
 
 
 function home(){
+    if(logsatus==2)
+        sidebarlehrer()
+    if(logsatus==1)
+        sidebarschueler()
     let httpReq=new XMLHttpRequest()
     httpReq.open('GET', '/api/newest_events')
     httpReq.onload = function() {
@@ -92,6 +111,7 @@ function home(){
     console.log(responseData)
     }
     httpReq.send()
+    
 }
 
 
@@ -121,7 +141,7 @@ function row(tid){
             let responseData = JSON.parse(this.responseText)
             console.log(responseData)
 
-            html ='<h1>'+responseData[0].klasse+': '+responseData[0].fach+' vom '+responseData[0].datum+' über '+responseData[0].bezeichnung+'</h2>'
+            html ='<h2>'+responseData[0].klasse+': '+responseData[0].fach+' vom '+responseData[0].datum+' über '+responseData[0].bezeichnung+' bei '+ responseData[0].lfirstname+ ' '+ responseData[0].llastname+'</h2>'
             html += '<table class="newest">'
             html += '<tr><th>Vorname</th><th>Nachname</th><th>Note</th><th>Kommentar</th></tr>'
             for(let row in responseData) {
@@ -305,7 +325,6 @@ function klassensubmit(formEl)
             html+='</select>'
             html+='<input type="submit" value="Speichern">'
             html+='</form>'
-            ausgabe.innerHTML=html
             html += '</table>'
             ausgabe.innerHTML=html
             } else {
@@ -383,6 +402,7 @@ function fachsubmit(formEl, kid){
 }
 
 function notessubmit(formEl, kid, fid){
+    home()
     console.log(kid,fid)
     let elements = formEl.elements
     let datum
@@ -403,31 +423,38 @@ function notessubmit(formEl, kid, fid){
         }
     }
     i=0
-    console.log(beschreibung)
-    console.log(datum)
-    console.log(list)
-    var text = '{ "kid" : "'+kid+'", "fid" : "'+fid+'", "date" : "'+datum+'","beschreibung":"'+beschreibung+'","lehrer":"crazy","tid":"0","schueler":['
-    while(i<list.length-2){
-        text+='{"'+list[i]+'":"'+list[++i]+'"},'
-        i++
-    }
-    var text = text.substr(0, text.length-1);
-    text+=']}'
-    console.log(text)
-    var xhr = new XMLHttpRequest();
-    var url = "http://localhost:3000/api/post_test";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var json = JSON.parse(xhr.responseText);
-            console.log(json.email + ", " + json.password);
-            }
-        };
-    xhr.send(text);
+    if(beschreibung.length!=0){
+        console.log(beschreibung)
+        console.log(datum)
+        console.log(list)
+        var text = '{ "kid" : "'+kid+'", "fid" : "'+fid+'", "date" : "'+datum+
+        '","bezeichnung":"'+beschreibung+'","lid":"'+id+'","tid":"0","schueler":['
+        while(i<list.length-2){
+            text+='{"kommentar":"'+list[i]+'",'
+            text+='"note":"'+list[++i]+'"},'
+            i++
+        }
+        var text = text.substr(0, text.length-1);
+        text+=']}'
+        console.log(text)
+        var xhr = new XMLHttpRequest();
+        var url = "http://localhost:3000/api/post_test";
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+                console.log(json.email + ", " + json.password);
+                }
+            };
+        xhr.send(text);
+        }
     }
     
-
+function meineergebnisse()
+{
+    getschulertests(globalfirst,globallast)
+}
 
 
 
@@ -445,12 +472,17 @@ function findeschueler(){
 function findschuelerpress(formEl)
 {
     let vn=formEl.elements.inputname.value
-    console.log(vn)
-    let arr = vn.split(' ')
-    let firstname = arr[0]
-    let lastname = arr[1]
-    console.log(firstname)
-    console.log(lastname)
+    if(vn.length!=0){ 
+        console.log(vn)
+        let arr = vn.split(' ')
+        let firstname = arr[0]
+        let lastname = arr[1]
+        console.log(firstname)
+        console.log(lastname)
+        getschulertests(firstname,lastname)
+    }
+}
+function getschulertests(firstname,lastname){
     let httpReq=new XMLHttpRequest()
     httpReq.open('GET', '/api/get_personentests/'+firstname+'/'+lastname)
     httpReq.onload = function() {
@@ -459,13 +491,19 @@ function findschuelerpress(formEl)
             let responseData = JSON.parse(this.responseText)
             console.log(responseData)
             html = '<table class="newest">'
-            html += '<tr><th>Fach</th><th>Bezeichnung</th><th>Datum</th><th>Klasse</th></tr>'
             for(let row in responseData) {
                 html += '<tr>'
-                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].fach+'</a></td>'
-                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].bezeichnung+'</a></td>'
-                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].datum+'</a></td>'
-                html += '<td  onclick="row('+responseData[row].tid+')">'+responseData[row].klasse+'</a></td>'
+                html += '<td><h1>'+responseData[row].fach+'</h1></a></td>'
+                html += '<table class="newest">'
+                console.log(responseData[row].data)
+                for(let row2 in responseData[row].data) {   
+                    html += '<tr>'
+                    html += '<td  onclick="row('+responseData[row].data[row2].tid+')">'+responseData[row].data[row2].bezeichnung+'</a></td>'
+                    html += '<td  onclick="row('+responseData[row].data[row2].tid+')">'+responseData[row].data[row2].datum+'</a></td>'
+                    html += '<td  onclick="row('+responseData[row].data[row2].tid+')">'+responseData[row].data[row2].klasse+'</a></td>'
+                    html += '</tr>'
+                }
+                html += '</table>'
                 html += '</tr>'
             }
             html += '</table>'
@@ -488,8 +526,6 @@ function findschuelerpress(formEl)
 
 }
 
-
-console.log(sha1("hallo"))
 function sha1(msg)
 {
   function rotl(n,s) { return n<<s|n>>>32-s; };

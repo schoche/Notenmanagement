@@ -48,22 +48,22 @@ create table ergebnisse(
 	sid int,
 	tid int,
 	primary key(sid,tid),
-	note int not null,
+	note int,
 	kommentar varchar(20)
 );
 	
 
 insert into schueler values 
-	(1,1,"Martin","Schachl",""),
-	(2,1,"Johannes","Aigner",""),
-	(3,1,"Elias","Wollitzer",""),
-	(1,2,"Arastu","Moatazedi",""),
-	(2,2,"Florian","Schachermair",""),
-	(3,2,"Leon","Stempfer","");
+	(1,1,"Martin","Schachl","16a9a54ddf4259952e3c118c763138e83693d7fd"),
+	(2,1,"Johannes","Aigner","16a9a54ddf4259952e3c118c763138e83693d7fd"),
+	(3,1,"Elias","Wollitzer","16a9a54ddf4259952e3c118c763138e83693d7fd"),
+	(1,2,"Arastu","Moatazedi","16a9a54ddf4259952e3c118c763138e83693d7fd"),
+	(2,2,"Florian","Schachermair","16a9a54ddf4259952e3c118c763138e83693d7fd"),
+	(3,2,"Leon","Stempfer","16a9a54ddf4259952e3c118c763138e83693d7fd");
 
 insert into lehrer values
-	(null, "Franz", "Matejka", ""),
-	(null, "Crazy", "Wagner", "");
+	(null, "Franz", "Matejka", "fd4cef7a4e607f1fcc920ad6329a6df2df99a4e8"),
+	(null, "Crazy", "Wagner", "fd4cef7a4e607f1fcc920ad6329a6df2df99a4e8");
 
 insert into klassen values
 	(null,"5AHELS"),
@@ -115,3 +115,6 @@ insert into ergebnisse values
 	(1,8,5,"Pruefung"),
 	(2,8,1,""),
 	(3,8,4,"")
+
+
+
